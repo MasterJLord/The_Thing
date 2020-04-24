@@ -51,8 +51,8 @@ def finale(swarm):
     elif swarm <= 15:
         print(". Not bad, not bad at all.")
     elif swarm <= 25:
-        print(", that's actually quite good!")
-    elif swarm <= 35:
+        print("; that's actually quite good!")
+    elif swarm <= 40:
         print("- I'm impressed!")
     else:
         print(", were you cheating? If not, you've earned my respect. Congratulations!")
@@ -66,7 +66,7 @@ class wraith:
             self.power = 1.6
         else:
             self.direction = direction
-            self.power = math.log(lastwraith, 1.7)+11.48
+            self.power = math.log(lastwraith, 1.7)+16.48-.25*Helth[0]
             
     def tick(self, locale):
         temp = locale
@@ -169,10 +169,10 @@ class heavy:
         self.y = 674
         if randint(0, 1) == 1:
             self.x = -11-4*swarm
-            self.speed = 8
+            self.speed = randint(7, 12)
         else:
             self.x = 721+4*swarm
-            self.speed = -8
+            self.speed = -1*randint(7, 12)
         self.frame = 0
         self.clock = 1
         
@@ -184,10 +184,10 @@ class heavy:
             if self.frame > 5:
                 self.frame = 0
                 self.x += self.speed
-                if self.x >= 486:
-                    self.speed = -8
-                elif self.x <= 24:
-                    self.speed = 8
+                if self.x >= 686 and self.speed >= 0:
+                    self.speed *= -1
+                elif self.x <= 24 and self.speed<=0:
+                    self.speed *= -1
                 bulletinboard.append(rocket((self.x, 485), 90))
                 
         if self.frame == 0:
