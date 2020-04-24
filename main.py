@@ -10,6 +10,7 @@ clock = pygame.time.Clock()
 launch = 0
 shrek = 0
 autumn = 0
+Helth = [15]
 
 def jump(locale, target):
     tempx =target[0]-locale[0]
@@ -38,7 +39,7 @@ def jump(locale, target):
     return(dire)
 
 def dist(pointA, pointB):
-    return(((pointA[0]-pointB[0])^2+(pointA[0]-pointB[0])^2)^(0.5))
+    return(((pointA[0]-pointB[0])**2+(pointA[0]-pointB[0])**2)**(0.5))
 
 class wraith:
     def __init__(self, direction, lastwraith):
@@ -96,15 +97,43 @@ class rocket:
         self.y -= math.sin(self.dir*math.pi/180)*9
         pygame.draw.circle(screen, (255, 235, 240), (int(self.x), int(self.y)), 3)
         self.age += 1
-        if age >= 121 or dist(locale, (self.x, self.y)):
+        if self.age >= 121 or dist(locale, (self.x, self.y)) <= 5:
             return True
         else:
             return False
         
+    def expire(self):
+        bulletinboard.append(blast((self.x, self.y)))
+        return True
+    
+class blast:
+    def __init__(self, site):
+        self.x = site[0]
+        self.y = site[1]
+        self.fuse = 1
+        self.size = 14
+        self.age = 0
+        
+    def tick(self):
+        if dist((self.x, self.y), locale) <= int(self.size) and self.fuse == 1:
+            Helth[0] -= 3
+            self.fuse = 0
+            pygame.display.set_caption("temp")
+        pygame.draw.circle(screen, (255, 210, 180), (int(self.x), int(self.y)), math.ceil(self.size))
+        if self.age in (8, 14, 19, 23) or self.age >= 25:
+            self.size -= .5
+        self.age += 1
+        if self.age >= 47:
+            return True
+        else:
+            return False
+        
+    def expire(self):
+        return True
 
 motion = [wraith(0, -1)]
 
-bulletinboard.append(rocket((251, 255), 270))
+bulletinboard.append(rocket((176, 112), 270))
 
 while True:
     for event in pygame.event.get():
@@ -138,10 +167,18 @@ while True:
             for i in doom:
                 i -= 1
                 
+    doom = []
     if len(bulletinboard) >= 1:
-        for i in bulletinboard:
-            i.tick()
-    
+        for i in range(len(bulletinboard)):
+            if bulletinboard[i].tick():
+                doom.append(i+1)
+        while len(doom) >= 1:
+            for i in range(len(doom)):
+                doom[i] -= 1
+            bulletinboard[doom[0]].expire()
+            bulletinboard.pop(doom[0])
+            doom.pop(0)
+            
     if locale[1] < 485:
         autumn += 1
         locale[1] += autumn
@@ -151,5 +188,6 @@ while True:
             locale[1] = 485
     
     clock.tick(20)
-    pygame.draw.circle(screen, (255, 255, 255), (int(locale[0]), int(locale[1])), 6)
+    pygame.draw.circle(screen, (200, 200, 200), (int(locale[0]), int(locale[1])), 7)
+    pygame.draw.circle(screen, (255, 255, 255), (int(locale[0]), int(locale[1])), 1)
     pygame.display.update()
