@@ -3,16 +3,25 @@ from random import randint
 from pygame.locals import *
 pygame.init()
 screen = pygame.display.set_mode((710, 710))
-
-locale = [255, 255]
+#initializes the screen and imports files
+locale = [355, 355]
+#spawns the player in the center of the screen
 bulletinboard = []
+#all the enemies and bullets
 clock = pygame.time.Clock()
+#initializes the clock so that frames aren't all triggering as fast as the computer can handle
 launch = 0
+#makes a launch variable which is later used for not making holding the mouse button down count as a bunch of jumps
 shrek = 0
+#makes a variable to keep track of the *most powerful* jump still affecting the player 
 autumn = 0
+#keeps track of how fast the player is *fall*ing
 Helth = [15, 25]
+#your health, and then the countdown until you heal (max HP 20)
 spawner = 0
+#timer until another enemy spawns
 swarm = 1
+#initializes variables and stuff
 
 def jump(locale, target):
     tempx =target[0]-locale[0]
@@ -39,9 +48,11 @@ def jump(locale, target):
         if posx == 1 and posy == -1:
             dire = 360 - dire
     return(dire)
+#finds the direction from point A to point B so I can do stuff with sin and cos later in homing missiles and such
 
 def dist(pointA, pointB):
     return(((pointA[0]-pointB[0])**2+(pointA[1]-pointB[1])**2)**(0.5))
+#pythagorean theorem function
 
 def finale(swarm):
     if swarm <= 4:
@@ -57,16 +68,20 @@ def finale(swarm):
     else:
         print(", were you cheating? If not, you've earned my respect. Congratulations!")
     sys.exit()
+#gives you a reference point for your score and ended the game
 
 
+#applies force to your character when you jump over a period of time so you don't just teleport
 class wraith:
     def __init__(self, direction, lastwraith):
         if lastwraith == -1:
             self.direction = -1
             self.power = 1.6
+            #puts in a wraith to the list that does absolutely nothing but stops the game from crashing when you iterate over the list when you try to iterate over the list
         else:
             self.direction = direction
             self.power = math.log(lastwraith, 1.7)+16.48-.25*Helth[0]
+            #makes succesive jumps scale up in power and be more powerful at low health to build suspense by keeping you as close to 0 at all times
             
     def tick(self, locale):
         temp = locale
@@ -74,29 +89,39 @@ class wraith:
             temp[0] += self.power*math.cos(self.direction*math.pi/180*-1)
             temp[1] += self.power*math.sin(self.direction*math.pi/180*-1)
             self.power -= .35
+            #actually moves you
         return temp
+        #updates the player's location
         
     def tale(self):
         return self.power
+    #returns how much the jump is moving you so the jump can make later jumps stronger and so jumps that are no longer doing anything can be cleared out
     
 class rocket:
     def __init__(self, coordinates, initial):
         self.x = coordinates[0]
         self.y = coordinates[1]
-        self.age = 0
         self.dir = initial
+        #starts up the rocket where it should be
+        self.age = 0
+        #makes a timer so the rocket explodes eventually even if it hasn't hit you so every rocket isn't automatic damage
         self.flash = False
         
     def tick(self):
         if dist(locale, (self.x, self.y)) <= 12:
+            #checks to see if you're next to the missile before moving in case you moved towards it last frame and it's about to move away from you
             self.flash = True
+            #remembers that it hit you so that you can't escape the blast between the explosion and when the explosion will .tick()
             return True
+            #blows up
         iddir = jump((self.x, self.y), locale)
         tempdir = self.dir - 180
+        #cuts a circle into two halves, with one of the divisions pointing towards the player and the other pointing away. If the rocket is pointing towards one of them it will need to turn clockwise and if it is pointing towards the other one it will need to turn counterclockwise.
         tempbool = False
         if tempdir < 0:
             tempdir += 360
             tempbool = True
+            #loops the other division of the circle around if it would be a negative value; tempbool remembers if this triggered or if it didn't need to trigger
         if tempbool:
             if iddir < self.dir or iddir > tempdir:
                 self.dir -= 3
@@ -107,10 +132,12 @@ class rocket:
                 self.dir += 3
             elif not self.dir == iddir:
                 self.dir -= 3
+        #checks to see which half-circle the rocket is pointing towards and then turns the rocket correspondingly
         if self.dir >= 360:
             self.dir -= 360
         if self.dir < 0:
             self.dir += 360
+            #loops the direction so it can't try to move 361 or -1 degrees (which would still work for the actual motion, but would break the homing program and get it stuck soinning in circles)
         pygame.draw.circle(screen, (255, 205, 210), (int(self.x), int(self.y)), 2)
         self.x += math.cos(self.dir*math.pi/180)*4
         self.y -= math.sin(self.dir*math.pi/180)*4
@@ -118,50 +145,76 @@ class rocket:
         self.x += math.cos(self.dir*math.pi/180)*4
         self.y -= math.sin(self.dir*math.pi/180)*4
         pygame.draw.circle(screen, (255, 235, 240), (int(self.x), int(self.y)), 3)
+        #moves the rocket, in multiple steps to leave behind a neat-looking trail
         self.age += 1
+        #increments the timer
         if self.age >= 160 or dist(locale, (self.x, self.y)) <= 12:
+            if dist(locale, (self.x, self.y)) <= 12:
+                self.flash = True
+                #automatically hits you if it hit you so you can't escape
             return True
+        #calls .expire to explode if it has already timed out or is next to the player
         else:
             return False
+        #doesn't call .expire and doesn't explode
         
     def expire(self):
         if dist(locale, (self.x, self.y)) <= 16 or self.flash:
+            #instantly deals damage ot the player if necessary
             Helth[0] -= 3
             if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
                 print("You were blown up by a rocket, but it took " + str(swarm) + " warriors to do it", end = "")
                 finale(swarm)
+                #deals damage
             bulletinboard.append(blast((self.x, self.y), 0))
+            #create lingering explosion bracket that does nothing
         else:
             bulletinboard.append(blast((self.x, self.y), 0))
+            #create lingering explosion bracket that can still hit you
         return True
     
 class blast:
     def __init__(self, site, fuse):
         self.x = site[0]
         self.y = site[1]
+        #puts the explosion where the missile was
         self.fuse = fuse
+        #prevents the explosion from hitting you every frame and basicallyinstakilling you, also disables the explosion if the rocket already hit you
         self.size = 16
+        #sets the starting size of the explosion so it can shrink over time (at a slightly higher radius than the missile will detect you at so you can feel cool by barely dodging missiles)
         self.age = 0
+        #makes the explosion fade out
         
     def tick(self):
         if dist((self.x, self.y), locale) <= int(self.size) and self.fuse == 1:
+            #hurts you
             Helth[0] -= 3
             if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
                 print("You were blown up by a rocket, but it took " + str(swarm) + " warriors to do it", end = "")
                 finale(swarm)
+                #kills you (spares you if you're right about to gain a HP that would put you above 0 so you can have more near-death encounters)
             self.fuse = 0
-            pygame.display.set_caption("temp")
+            #defuses itself so it can't hit you multiple times
         pygame.draw.circle(screen, (255, 210, 180), (int(self.x), int(self.y)), math.ceil(self.size))
-        if self.age in (8, 14, 19, 23) or self.age >= 25:
+        #shows where the explosion is so the player doesn't get hit and killed by it without knowing what's happening (also makes the explosion up to half a pixel larger than the hitbox so the player can "miraculously" dodge a hit)
+        if self.age in (8, 14, 19, 24):
+            self.size -= 1
+        #makes the shrinking of the explosion accelerate over time
+        elif self.age >= 26:
             self.size -= .5
+            #shrinks the explosion rapidly after the previous lines of code resolved and the explosion is shrinking at full speed
         self.age += 1
-        if self.age >= 47:
+        #increases age so the acceleration works
+        if self.size < 1:
             return True
+        #erases explosion
         else:
             return False
+        #doesn't erase explosion
         
     def expire(self):
         return True
+    #does nothing, but self.expire() will get called before it is erased so a placeholder is necessary
     
     
 class heavy:
@@ -170,25 +223,32 @@ class heavy:
         if randint(0, 1) == 1:
             self.x = -11-4*swarm
             self.speed = randint(7, 12)
+            #either spawns a tank offscreen left...
         else:
             self.x = 721+4*swarm
             self.speed = -1*randint(7, 12)
+            #or offscreen right (moving inwards at a slightly randomized speed, spawning farther from the screen's edge depending on number of already existing tanks to reduce overlap)
         self.frame = 0
-        self.clock = 1
+        self.clock = 0
+        #starts a timer
         
     def tick(self):
         self.clock += 1
         if self.clock >= 18:
             self.frame += 1
             self.clock = 0
+            #switches to the next frame of the moving animation every 10 ticks
             if self.frame > 5:
                 self.frame = 0
                 self.x += self.speed
+                #loops around the animation
                 if self.x >= 686 and self.speed >= 0:
                     self.speed *= -1
                 elif self.x <= 24 and self.speed<=0:
                     self.speed *= -1
+                #makes the tanks bounce off the edges so they don't walk offscreen
                 bulletinboard.append(rocket((self.x, 485), 90))
+                #launches a missile on the end of the animation
                 
         if self.frame == 0:
             pygame.draw.rect(screen, (110, 110, 145), (self.x, self.y, 4, 11))
@@ -212,73 +272,95 @@ class heavy:
             pygame.draw.rect(screen, (110, 110, 145), (self.x+self.speed, self.y, 4, 11))
             if self.frame == 5:
                 pygame.draw.polygon(screen, (110, 110, 145), ((self.x+self.speed+5, self.y), (self.x+self.speed-3, self.y), (self.x+self.speed+2, self.y+6)))
+            #draws the tank in a different position depending on the current frame of the moving animation
                 
         return False
+        #makes the tank not explode
             
 
 motion = [wraith(0, -1)]
+#starts the list of jumps off with a nonexistent jump so the list can be iterated over
 
 bulletinboard.append(heavy())
+#starts the game off with one enemy
 
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-            break
+            #closes the window when the X is pressed
         if event.type == pygame.MOUSEBUTTONUP:
             if not launch:
                 autumn = 0
                 shrek = 0
+                #before jumping, resets shrek to gain new value and stops the player falling
                 for i in motion:
                     temp = i.tale()
                     if temp > shrek:
                         shrek = temp
+                        #updates shrek to truly be the most powerful jump
                 motion.append(wraith(jump(locale, pygame.mouse.get_pos()), shrek))
+                #actually jumps
             launch = 1
         else:
             launch = 0
+            #prevents holding the mouse down from being a jump every frame
                         
     screen.fill((0, 0, 0))
-            
+    #makes a black background
     Helth[1] -= 1
     if Helth[1] <= 0:
         Helth[1] = 25
         if Helth[0] < 20:
             Helth[0] += 1
+    #autoheals you by 1 HP every 25 frames to a maximum of 20
         
     spawner += 1
     if spawner >= 243+2*swarm:
         spawner = 0
         swarm += 1
         bulletinboard.append(heavy())
+        #spawns tanks preiodically, slowing down at a set rate
     pygame.display.set_caption(str(swarm)+"    "+str(Helth[0]))
-        
+    
+    
+    #tells the player the current score and health
     doom = []
+    #empties the list of jumps that will be erased
     for i in range(len(motion)):
         locale = motion[i].tick(locale)
+        #moves you according to what jumps are currently affecting you
         if motion[i].tale() <= 0:
             doom.append(i)
+            #adds a jump that isn't affecting you anymore to the list of jumps that will be erased (if it was erased right here than the iterator will be offset, skipping the next jump and crashing the game when it gets to what would be the last jump)
     for i in doom:
         motion.pop(i)
+        #now removes the useless jumps
         if len(doom) >= 1:
             for i in doom:
                 i -= 1
-                
+                #decreases the number of each other jump that will be deleted now that there is one less item in the list
     doom = []
+    #empties doom
     if len(bulletinboard) >= 1:
         for i in range(len(bulletinboard)):
             if bulletinboard[i].tick():
                 doom.append(i+1)
+                #does the same thing as happened before but now with bullets and enemies instead of jumps
         while len(doom) >= 1:
             for i in range(len(doom)):
                 doom[i] -= 1
+                #more of the same
             bulletinboard[doom[0]].expire()
+            #something different! Triggers any on-eath effects like a missile exploding from enemies and bullets
             bulletinboard.pop(doom[0])
             doom.pop(0)
+            #and back to more of the same. Deletes the bullets and enemies that need to be deleted.
             
     if locale[1] < 685:
         autumn += .5
         locale[1] += autumn
+    #makes gravity get you down (unlike an elevator- or are we gonna let the elevator bring us down? Who knows?)
     if locale[1] >= 685:
         autumn = 0
         locale[1] = 685
@@ -286,9 +368,15 @@ while True:
         locale[0] = 25
     elif locale[0] >= 685:
         locale[0] = 685
+    #stops the player from moving outside the boundaries of the box
         
     
     clock.tick(35)
+    #makes the game wait 1/35 of a second between frames so you can actually see what's going on
     pygame.draw.circle(screen, (200, 200, 200), (int(locale[0]), int(locale[1])), 7)
+    #draws the player (much larger than the actual hitbox so you can just narrowly dodge a bullet or missile)
     pygame.draw.circle(screen, (255, 255, 255), (int(locale[0]), int(locale[1])), 1)
+    #draws the player's actual hitbox
     pygame.display.update()
+    #and finally makes everything that's happened so far vivible.
+    
