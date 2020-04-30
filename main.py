@@ -247,7 +247,7 @@ class heavy:
                 elif self.x <= 24 and self.speed<=0:
                     self.speed *= -1
                 #makes the tanks bounce off the edges so they don't walk offscreen
-                bulletinboard.append(rocket((self.x, 485), 90))
+                bulletinboard.append(rocket((self.x, 674), 90))
                 #launches a missile on the end of the animation
                 
         if self.frame == 0:
@@ -360,23 +360,31 @@ while True:
     if locale[1] < 685:
         autumn += .5
         locale[1] += autumn
-    #makes gravity get you down (unlike an elevator- or are we gonna let the elevator bring us down? Who knows?)
+    #makes gravity get you down (unlike an elevator- or *are* we gonna let the elevator bring us down? Who knows?)
     if locale[1] >= 685:
         autumn = 0
         locale[1] = 685
-    if locale[0] <= 25:
-        locale[0] = 25
-    elif locale[0] >= 685:
-        locale[0] = 685
+    if locale[0] <= -50:
+        locale[0] = -50
+    elif locale[0] >= 760:
+        locale[0] = 760
     #stops the player from moving outside the boundaries of the box
         
     
     clock.tick(35)
-    #makes the game wait 1/35 of a second between frames so you can actually see what's going on
-    pygame.draw.circle(screen, (200, 200, 200), (int(locale[0]), int(locale[1])), 7)
-    #draws the player (much larger than the actual hitbox so you can just narrowly dodge a bullet or missile)
-    pygame.draw.circle(screen, (255, 255, 255), (int(locale[0]), int(locale[1])), 1)
+    #makes the game wait 1/35 of a second between frames so you can actually see what's going on, assuming you'l actually be able to see the player and you aren't offscreen
+    if locale[0] >= -5 and locale[0] <= 715:
+        pygame.draw.circle(screen, (200, 200, 200), (int(locale[0]), int(locale[1])), 7)
+        #draws the player (much larger than the actual hitbox so you can just narrowly dodge a bullet or missile)
+        pygame.draw.circle(screen, (255, 255, 255), (int(locale[0]), int(locale[1])), 1)
     #draws the player's actual hitbox
+    else:
+        if locale[0] < 0:
+            pygame.draw.polygon(screen, (200, 200, 200), ((5, int(locale[1])), (13, int(locale[1]+5)), (13, int(locale[1])-5)))
+            #draws a triangle pointing to the player if offscreen left
+        else:
+            pygame.draw.polygon(screen, (200, 200, 200), ((705, int(locale[1])), (697, int(locale[1]+5)), (697, int(locale[1])-5)))
+            #draws a triangle pointing to the player if offscreen right
     pygame.display.update()
-    #and finally makes everything that's happened so far vivible.
+    #and finally makes everything that's happened so far visible.
     
