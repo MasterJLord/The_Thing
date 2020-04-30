@@ -20,8 +20,9 @@ Helth = [15, 25]
 #your health, and then the countdown until you heal (max HP 20)
 spawner = 0
 #timer until another enemy spawns
-swarm = 1
+swarm = 2
 #initializes variables and stuff
+
 
 def jump(locale, target):
     tempx =target[0]-locale[0]
@@ -55,18 +56,22 @@ def dist(pointA, pointB):
 #pythagorean theorem function
 
 def finale(swarm):
-    if swarm <= 4:
+    if swarm <= 5:
+        print(". I didn't even know it was possible to die that quickly.")
+    elif swarm <= 8:
         print(". Try again- I know you can do better than that!")
-    elif swarm <= 9:
+    elif swarm <= 11:
         print(". At least it's something.")
-    elif swarm <= 15:
+    elif swarm <= 17:
         print(". Not bad, not bad at all.")
     elif swarm <= 25:
         print("; that's actually quite good!")
-    elif swarm <= 40:
+    elif swarm <= 45:
         print("- I'm impressed!")
-    else:
+    elif swarm <= 75:
         print(", were you cheating? If not, you've earned my respect. Congratulations!")
+    else:
+        print(". Okay, you were definitely cheating.")
     sys.exit()
 #gives you a reference point for your score and ended the game
 
@@ -163,7 +168,7 @@ class rocket:
             #instantly deals damage ot the player if necessary
             Helth[0] -= 3
             if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
-                print("You were blown up by a rocket, but it took " + str(swarm) + " warriors to do it", end = "")
+                print("You were blown up by a rocket, but it took " + str(swarm) + " enemies to do it", end = "")
                 finale(swarm)
                 #deals damage
             bulletinboard.append(blast((self.x, self.y), 0))
@@ -190,7 +195,7 @@ class blast:
             #hurts you
             Helth[0] -= 3
             if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
-                print("You were blown up by a rocket, but it took " + str(swarm) + " warriors to do it", end = "")
+                print("You were blown up by a rocket, but it took " + str(swarm) + " enemies to do it", end = "")
                 finale(swarm)
                 #kills you (spares you if you're right about to gain a HP that would put you above 0 so you can have more near-death encounters)
             self.fuse = 0
@@ -231,14 +236,15 @@ class heavy:
         self.frame = 0
         self.clock = 0
         #starts a timer
+        self.step = 0
         
     def tick(self):
         self.clock += 1
-        if self.clock >= 18:
+        if self.clock >= 11:
             self.frame += 1
             self.clock = 0
             #switches to the next frame of the moving animation every 10 ticks
-            if self.frame > 5:
+            if self.frame > 5 or self.frame == 4 and self.step == 1:
                 self.frame = 0
                 self.x += self.speed
                 #loops around the animation
@@ -247,8 +253,12 @@ class heavy:
                 elif self.x <= 24 and self.speed<=0:
                     self.speed *= -1
                 #makes the tanks bounce off the edges so they don't walk offscreen
-                bulletinboard.append(rocket((self.x, 674), 90))
-                #launches a missile on the end of the animation
+                if self.step == 0:
+                    self.step = 1
+                    bulletinboard.append(rocket((self.x, 674), 90))
+                else:
+                    self.step = 0
+                #launches a missile on the end of the second step or toggles the step
                 
         if self.frame == 0:
             pygame.draw.rect(screen, (110, 110, 145), (self.x, self.y, 4, 11))
@@ -276,13 +286,144 @@ class heavy:
                 
         return False
         #makes the tank not explode
-            
+        
+        
+class limiter:
+    def __init__(self):
+        self.x = randint(175, 535)
+        self.y = randint(175, 535)
+        #initializes force field at a random point
+        self.power = randint(35, 65)
+        #sets a randomized delay before forcefield activates
+        self.frame = 5
+        self.deel = 0
+        
+    def arrive(self):
+        if self.frame == 0:
+            pygame.draw.line(screen, (255, 255, 255), (self.x, self.y+self.power), (self.x, self.y+190), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x+self.power, self.y), (self.x+190, self.y), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x, self.y-self.power), (self.x, self.y-190), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x-self.power, self.y), (self.x-190, self.y), 8)
+            #draws lines approaching power core
+            self.power -= 6
+            #makes lines get closer
+        elif self.frame == 1:
+            pygame.draw.line(screen, (255, 255, 255), (self.x, self.y+self.power), (self.x, self.y), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x+self.power, self.y), (self.x, self.y), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x, self.y-self.power), (self.x, self.y), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x-self.power, self.y), (self.x, self.y), 8)
+            #draws lines being absorbed by power core
+            self.power -= 6
+            #makes lines get absorbed by core
+        
+    def tick(self):
+        if self.frame == 0 or self.frame == 1:
+            self.arrive()
+            #calls above function and draws lines
+            if self.power <= 0:
+                self.frame += 1
+                if self.frame == 1:
+                    self.power = 175
+                if self.frame == 2:
+                    self.power = 0
+                #proceeds to next steps of animation
+        elif self.frame == 2:
+            self.power += 6
+            if self.power >= 190:
+                self.power = 105
+                pygame.draw.circle(screen, (255, 255, 255), (self.x, self.y), self.power, 2)
+                self.frame += 1
+                #draws powering up circle
+            else:
+                pygame.draw.circle(screen, (255, 255, 255), (self.x, self.y), self.power, 2)
+                #draws circle at max power during final frame before next step of animation
+        elif self.frame == 3:
+            pygame.draw.circle(screen, (255, 255, 255), (self.x, self.y), 190, 4)
+            #draws the reduced boundaries of the play field
+            self.power -= 1
+            if self.power <= 0:
+                self.frame += 1
+                self.power = 190
+            #makes the core run out of power after a time
+        elif self.frame == 4:
+            pygame.draw.circle(screen, (225, 225, 225), (self.x, self.y), self.power, 2)
+            self.power -= 9
+            #draws the collapsing forcefield
+            if self.power <= 1:
+                self.power = randint(0, 15)
+                self.frame += 1
+                #ends the animation and sets the delay before the limiter reactivates
+        else:
+            self.power += 1
+            #slowly reharges the limiter
+            if self.power >= 140-5*swarm:
+                self.frame = 0
+                self.power = 190
+                #resets the limiter
+                self.x = randint(175, 535)
+                self.y = randint(175, 535)
+                #randomizes the limiter's position
+                
+        if self.frame == 2 or self.frame == 3:
+            pygame.draw.rect(screen, (255, 255, 255), (self.x-7, self.y-7, 14, 14))
+            pygame.draw.rect(screen, (255, 255, 255), (self.x-10, self.y-5, 20, 10))
+            pygame.draw.rect(screen, (255, 255, 255), (self.x-5, self.y-10, 10, 20))
+            #draws the power core
+        if self.frame == 3:
+            temp = dist((self.x, self.y), locale)
+            if temp > 197:
+                temp = 190/temp
+                temper = (self.x+temp*(locale[0]-self.x), self.y+temp*(locale[1]-self.y))
+                #finds the point on the circle's edge closest to the player
+                pygame.draw.line(screen, (255, 255, 255), (self.x, self.y), trueloc, 3)
+                pygame.draw.line(screen, (255, 190, 190), temper, trueloc, 3)
+                pygame.draw.line(screen, (255, 65, 65), temper, trueloc, 1)
+                #lasers that point
+                if self.deel == 0:
+                    self.deel = 10
+                #limits the limiter's DPS to 2.5
+                    Helth[0] -= 1
+                    if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
+                        print("You strayed out of bounds and were killed by a laser, but it took " + str(swarm) + " enemies to do it", end = "")
+                        finale(swarm)
+                        #finally actually deals damage
+            else:
+                pygame.draw.line(screen, (255, 255, 255), (self.x, self.y), trueloc, 2)
+                #draws a non-ouchy line to the player
+        if self.deel >= 1:
+            self.deel -= 1
+            #decreases the clock until the limiter can deal damage again
+        return False
+        #makes the limiter not blow up immediately
 
+        
 motion = [wraith(0, -1)]
 #starts the list of jumps off with a nonexistent jump so the list can be iterated over
 
 bulletinboard.append(heavy())
-#starts the game off with one enemy
+#starts the game off with one enemy...
+
+bulletinboard.append(limiter())
+#and the limiter.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 while True:
     for event in pygame.event.get():
@@ -311,9 +452,9 @@ while True:
     Helth[1] -= 1
     if Helth[1] <= 0:
         Helth[1] = 25
-        if Helth[0] < 20:
+        if Helth[0] < 18+swarm:
             Helth[0] += 1
-    #autoheals you by 1 HP every 25 frames to a maximum of 20
+    #autoheals you by 1 HP every 25 frames to an always-increasing max HP
         
     spawner += 1
     if spawner >= 243+2*swarm:
@@ -370,20 +511,21 @@ while True:
         locale[0] = 760
     #stops the player from moving outside the boundaries of the box
         
-    
+    trueloc = [int(locale[0]), int(locale[1])]
+    #creates a rounded location for the player because some of the drawing functions will soon be unable to operate with float parameters
     clock.tick(35)
     #makes the game wait 1/35 of a second between frames so you can actually see what's going on, assuming you'l actually be able to see the player and you aren't offscreen
     if locale[0] >= -5 and locale[0] <= 715:
-        pygame.draw.circle(screen, (200, 200, 200), (int(locale[0]), int(locale[1])), 7)
+        pygame.draw.circle(screen, (200, 200, 200), (trueloc[0], trueloc[1]), 7)
         #draws the player (much larger than the actual hitbox so you can just narrowly dodge a bullet or missile)
-        pygame.draw.circle(screen, (255, 255, 255), (int(locale[0]), int(locale[1])), 1)
+        pygame.draw.circle(screen, (255, 255, 255), (trueloc[0], trueloc[1]), 1)
     #draws the player's actual hitbox
     else:
         if locale[0] < 0:
-            pygame.draw.polygon(screen, (200, 200, 200), ((5, int(locale[1])), (13, int(locale[1]+5)), (13, int(locale[1])-5)))
+            pygame.draw.polygon(screen, (200, 200, 200), ((5, trueloc[1]), (13, trueloc[1]+5), (13, trueloc[1]-5)))
             #draws a triangle pointing to the player if offscreen left
         else:
-            pygame.draw.polygon(screen, (200, 200, 200), ((705, int(locale[1])), (697, int(locale[1]+5)), (697, int(locale[1])-5)))
+            pygame.draw.polygon(screen, (200, 200, 200), ((705, trueloc[1]), (697, trueloc[1]+5), (697, trueloc[1]-5)))
             #draws a triangle pointing to the player if offscreen right
     pygame.display.update()
     #and finally makes everything that's happened so far visible.
