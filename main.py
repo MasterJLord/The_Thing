@@ -58,7 +58,7 @@ def dist(pointA, pointB):
 def finale(swarm):
     if swarm <= 5:
         print(". I didn't even know it was possible to die that quickly.")
-    elif swarm <= 8:
+    elif swarm <= 7:
         print(". Try again- I know you can do better than that!")
     elif swarm <= 11:
         print(". At least it's something.")
@@ -69,9 +69,9 @@ def finale(swarm):
     elif swarm <= 45:
         print("- I'm impressed!")
     elif swarm <= 75:
-        print(", were you cheating? If not, you've earned my respect. Congratulations!")
+        print(", were you cheating? If not, you've definitely earned my respect. Congratulations!")
     else:
-        print(". Okay, you were definitely cheating.")
+        print(". Okay, with a score this high, you were definitely cheating.")
     sys.exit()
 #gives you a reference point for your score and ended the game
 
@@ -481,23 +481,7 @@ while True:
             for i in doom:
                 i -= 1
                 #decreases the number of each other jump that will be deleted now that there is one less item in the list
-    doom = []
-    #empties doom
-    if len(bulletinboard) >= 1:
-        for i in range(len(bulletinboard)):
-            if bulletinboard[i].tick():
-                doom.append(i+1)
-                #does the same thing as happened before but now with bullets and enemies instead of jumps
-        while len(doom) >= 1:
-            for i in range(len(doom)):
-                doom[i] -= 1
-                #more of the same
-            bulletinboard[doom[0]].expire()
-            #something different! Triggers any on-eath effects like a missile exploding from enemies and bullets
-            bulletinboard.pop(doom[0])
-            doom.pop(0)
-            #and back to more of the same. Deletes the bullets and enemies that need to be deleted.
-            
+    
     if locale[1] < 685:
         autumn += .5
         locale[1] += autumn
@@ -513,6 +497,24 @@ while True:
         
     trueloc = [int(locale[0]), int(locale[1])]
     #creates a rounded location for the player because some of the drawing functions will soon be unable to operate with float parameters
+
+    doom = []
+    #empties doom
+    if len(bulletinboard) >= 1:
+        for i in range(len(bulletinboard)):
+            if bulletinboard[i].tick():
+                doom.append(i+1)
+                #does the same thing as happened before but now with bullets and enemies instead of jumps
+        while len(doom) >= 1:
+            for i in range(len(doom)):
+                doom[i] -= 1
+                #more of the same
+            bulletinboard[doom[0]].expire()
+            #something different! Triggers any on-death effects like a missile exploding from enemies and bullets
+            bulletinboard.pop(doom[0])
+            doom.pop(0)
+            #and back to more of the same. Deletes the bullets and enemies that need to be deleted.
+            
     clock.tick(35)
     #makes the game wait 1/35 of a second between frames so you can actually see what's going on, assuming you'l actually be able to see the player and you aren't offscreen
     if locale[0] >= -5 and locale[0] <= 715:
