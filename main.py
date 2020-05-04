@@ -373,7 +373,7 @@ class limiter:
             temp = dist((self.x, self.y), locale)
             if temp > 197:
                 temp = 190/temp
-                temper = (self.x+temp*(locale[0]-self.x), self.y+temp*(locale[1]-self.y))
+                temper = (int(self.x+temp*(locale[0]-self.x)), int(self.y+temp*(locale[1]-self.y)))
                 #finds the point on the circle's edge closest to the player
                 pygame.draw.line(screen, (255, 255, 255), (self.x, self.y), trueloc, 3)
                 pygame.draw.line(screen, (255, 190, 190), temper, trueloc, 3)
@@ -395,6 +395,47 @@ class limiter:
             #decreases the clock until the limiter can deal damage again
         return False
         #makes the limiter not blow up immediately
+        
+
+class jumper():
+    def __init__(self):
+        self.x = randint(80, 630)
+        self.y = -15
+        self.dire = 0
+        if self.x <= 355:
+            self.jdire = randint(180, 225)
+        else:
+            self.jdire = randint(315, 360)
+        self.fall = 2
+        self.power = randint(8, 12)
+        self.vat = 0
+        
+    def tick(self):
+        self.vat += 1
+        if self.vat > 65:
+            self.vat = 0
+        self.power -= 0.35
+        if self.power < 0:
+            self.power = 0
+        self.x += math.cos(self.jdire)*self.power
+        self.y += math.sin(self.jdire)*self.power
+        self.fall += .5
+        self.y += self.fall
+        if self.y > 660:
+            self.y = 660
+            self.fall = 0
+        pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x)+12, int(self.y)+12), 5)
+        pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x)-12, int(self.y)+12), 5)
+        temp = 17/dist((self.x, self.y), locale)
+        if self.vat < 35:
+            pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+temp*(locale[0]-self.x)), int(self.y+temp*(locale[1]-self.y))), 5)
+        elif self.vat == 35:
+            self.dire = jump((self.x, self.y), locale)
+            pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+temp*(locale[0]-self.x)), int(self.y+temp*(locale[1]-self.y))), 5)
+        else:
+            pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y+math.sin(self.dire)*17)))
+        pygame.draw.circle(screen, (255, 190, 190), (int(self.x), int(self.y)), 9)
+        pygame.draw.polygon(screen, (255, 145, 145), ((int(self.x), int(self.y)-6), (int(self.x-4.24), int(self.y+4.24)), (int(self.x+4.24), int(self.y+4.24))))
 
         
 motion = [wraith(0, -1)]
@@ -403,8 +444,12 @@ motion = [wraith(0, -1)]
 bulletinboard.append(heavy())
 #starts the game off with one enemy...
 
+bulletinboard.append(jumper())
+#...and another enemy...
+
 bulletinboard.append(limiter())
 #and the limiter.
+
 
 
 
