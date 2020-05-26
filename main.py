@@ -412,7 +412,7 @@ class jumper():
         
     def tick(self):
         self.vat += 1
-        if self.vat > 65:
+        if self.vat > 110:
             self.vat = 0
         self.power -= 0.35
         if self.power < 0:
@@ -427,13 +427,17 @@ class jumper():
         pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x)+12, int(self.y)+12), 5)
         pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x)-12, int(self.y)+12), 5)
         temp = 17/dist((self.x, self.y), locale)
-        if self.vat < 35:
+        if self.vat < 45:
             pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+temp*(locale[0]-self.x)), int(self.y+temp*(locale[1]-self.y))), 5)
-        elif self.vat == 35:
-            self.dire = jump((self.x, self.y), locale)
+        elif self.vat == 45:
+            self.dire = jump((self.x, self.y), locale)*math.pi/180
             pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+temp*(locale[0]-self.x)), int(self.y+temp*(locale[1]-self.y))), 5)
+        elif self.vat <= 100:
+            pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), 5)
+            pygame.draw.line(screen, (140, 140, 140), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), (int(self.x+math.cos(self.dire)*1005), int(self.y-math.sin(self.dire)*1005)), 7)
         else:
-            pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y+math.sin(self.dire)*17)))
+            pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), 5)
+            pygame.draw.line(screen, (210, 120, 160), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), (int(self.x+math.cos(self.dire)*1005), int(self.y-math.sin(self.dire)*1005)), 7)  
         pygame.draw.circle(screen, (255, 190, 190), (int(self.x), int(self.y)), 9)
         pygame.draw.polygon(screen, (255, 145, 145), ((int(self.x), int(self.y)-6), (int(self.x-4.24), int(self.y+4.24)), (int(self.x+4.24), int(self.y+4.24))))
 
