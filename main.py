@@ -75,7 +75,124 @@ def finale(swarm):
     sys.exit()
 #gives you a reference point for your score and ended the game
 
+def invade(score, dudes):
+    decider = randint(1, 100)
+    if score <= 5:
+        if decider <= 65:
+            dudes.append(heavy())
+        else:
+            dudes.append(jumper())
+    elif score <= 7:
+        if decider <= 55:
+            dudes.append(heavy())
+        else:
+            dudes.append(jumper())
+    elif score <= 11:
+        if decider <=40:
+            dudes.append(heavy())
+        elif decider <= 80:
+            dudes.append(jumper())
+        elif decider <= 90:
+            dudes.append(heavy())
+            dudes.append(heavy())
+            score += 1
+        else:
+            dudes.append(heavy())
+            dudes.append(jumper())
+            score += 1
+    elif score <= 17:
+        if decider <= 30:
+            dudes.append(heavy())
+        elif decider <= 60:
+            dudes.append(jumper())
+        elif decider <= 75:
+            dudes.append(heavy())
+            dudes.append(heavy())
+            score += 1
+        elif decider <= 90:
+            dudes.append(heavy())
+            dudes.append(jumper())
+            score += 1
+        else:
+            dudes.append(jumper())
+            dudes.append(jumper())
+            score += 1
+    elif score <= 25:
+        if decider <= 15:
+            dudes.append(heavy())
+        elif decider <= 30:
+            dudes.append(jumper())
+        elif decider <= 50:
+            dudes.append(heavy())
+            dudes.append(heavy())
+        elif decider <= 70:
+            dudes.append(heavy())
+            dudes.append(jumper())
+        elif decider <= 90:
+            dudes.append(jumper())
+            dudes.append(jumper())
+    elif score <= 45:
+        if decider <= 5:
+            dudes.append(heavy())
+        elif decider <= 10:
+            dudes.append(jumper())
+        elif decider <= 30:
+            dudes.append(heavy())
+            dudes.append(heavy())
+            score += 1
+        elif decider <= 50:
+            dudes.append(heavy())
+            dudes.append(jumper())
+            score += 1
+        elif decider <= 70:
+            dudes.append(jumper())
+            dudes.append(jumper())
+            score += 1
+        else:
+            for i in (0, 1, 2):
+                if randint(0, 1) == 1:
+                    dudes.append(heavy())
+                else:
+                    dudes.append(jumper())
+            score += 2
+    elif score <= 75:
+        score += 1
+        if decider <= 10:
+            dudes.append(heavy())
+            dudes.append(heavy())
+        elif decider <= 20:
+            dudes.append(heavy())
+            dudes.append(jumper())
+        elif decider <= 30:
+            dudes.append(jumper())
+            dudes.append(jumper())
+        elif decider <= 75:
+            for i in (0, 1, 2):
+                score += 1
+                if randint(0, 1) == 1:
+                    dudes.append(heavy())
+                else:
+                    dudes.append(jumper())
+        else:
+            score += 2
+            for i in (0, 1, 2, 3):
+                if randint(0, 1) == 1:
+                    dudes.append(heavy())
+                else:
+                    dudes.append(jumper())
+    else:
+        score -= 1
+        for i in range(randint(3, int(score/15))):
+            score += 1
+            if randint(0, 1) == 1:
+                dudes.append(heavy())
+            else:
+                dudes.append(jumper())
+    score += 1
+    return (score, dudes)
+        
 
+            
 #applies force to your character when you jump over a period of time so you don't just teleport
 class wraith():
     def __init__(self, direction, lastwraith):
@@ -257,11 +374,11 @@ class heavy():
     def __init__(self):
         self.y = 674
         if randint(0, 1) == 1:
-            self.x = -11-4*swarm
+            self.x = -1*randint(11+4*swarm, 21+5*swarm)
             self.speed = randint(7, 12)
             #either spawns a tank offscreen left...
         else:
-            self.x = 721+4*swarm
+            self.x = randint(721+4*swarm, 731+5*swarm)
             self.speed = -1*randint(7, 12)
             #or offscreen right (moving inwards at a slightly randomized speed, spawning farther from the screen's edge depending on number of already existing tanks to reduce overlap)
         self.frame = 0
@@ -530,9 +647,6 @@ motion = [wraith(0, -1)]
 bulletinboard.append(heavy())
 #starts the game off with one enemy...
 
-bulletinboard.append(jumper())
-#...and another enemy...
-
 bulletinboard.append(limiter())
 #and the limiter.
 
@@ -583,16 +697,17 @@ while True:
     Helth[1] -= 1
     if Helth[1] <= 0:
         Helth[1] = 25
-        if Helth[0] < 18+swarm:
+        if Helth[0] < 16+2*swarm:
             Helth[0] += 1
     #autoheals you by 1 HP every 25 frames to an always-increasing max HP
         
     spawner += 1
-    if spawner >= 243+2*swarm:
+    if spawner >= 253-8*swarm:
         spawner = 0
-        swarm += 1
-        bulletinboard.append(heavy())
-        #spawns tanks preiodically, slowing down at a set rate
+        temp = invade(swarm, bulletinboard)
+        swarm = temp[0]
+        bulletinboard = temp[1]
+        #spawns enemies preiodically, accelerating at a set rate
     pygame.display.set_caption(str(swarm)+"    "+str(Helth[0]))
     
     
@@ -650,7 +765,7 @@ while True:
     #makes the game wait 1/35 of a second between frames so you can actually see what's going on, assuming you'l actually be able to see the player and you aren't offscreen
     if locale[0] >= -5 and locale[0] <= 715:
         pygame.draw.circle(screen, (200, 200, 200), (trueloc[0], trueloc[1]), 7)
-        #draws the player (much larger than the actual hitbox so you can just narrowly dodge a bullet or missile)
+        #draws the player (much larger than the actual hitbox so you can just narrowly dodge a bullet or missile and feel good about yourself when in fact you weren't even close to getting hit)
         pygame.draw.circle(screen, (255, 255, 255), (trueloc[0], trueloc[1]), 1)
     #draws the player's actual hitbox
     else:
@@ -660,6 +775,20 @@ while True:
         else:
             pygame.draw.polygon(screen, (200, 200, 200), ((705, trueloc[1]), (697, trueloc[1]+5), (697, trueloc[1]-5)))
             #draws a triangle pointing to the player if offscreen right
+			
+    criticality = Helth[0]/(16+2*swarm)
+    if criticality <= 0.1:
+        criticality = (254, 0, 0)
+    elif criticality <= 0.3:
+        criticality = (252, 100, 0)
+    elif criticality <= 0.5:
+        criticality = (250, 200, 0)
+    elif criticality <= 0.99:
+        criticality = (200, 250, 0)
+    else:
+        criticality = (100, 255, 0)
+    pygame.draw.line(screen, criticality, (12, 12), (12+6*Helth[0], 12), 6)
+	
     pygame.display.update()
     #and finally makes everything that's happened so far visible.
     
