@@ -95,7 +95,7 @@ def invade(score):
         tier = 6
     if score <= 75:
         for i in range(balance[tier][decider]):
-            dudes.append(3)
+            dudes.append(randint(1, 3))
     else:
         for i in range(randint(3, int(score/12))):
             dudes.append(randint(1, 3))
@@ -108,11 +108,11 @@ class wraith():
     def __init__(self, direction, lastwraith):
         if lastwraith == -1:
             self.direction = -1
-            self.power = 1.6
+            self.power = 1.7
             #puts in a wraith to the list that does absolutely nothing but stops the game from crashing when you iterate over the list when you try to iterate over the list
         else:
             self.direction = direction
-            self.power = math.log(lastwraith, 1.7)+16.48-.25*Helth[0]
+            self.power = math.log(lastwraith, 1.7)+13.2-.25*(Helth[0]-(4+0.5*swarm))
             #makes succesive jumps scale up in power and be more powerful at low health to build suspense by keeping you as close to 0 at all times
             
     def tick(self, locale):
@@ -475,8 +475,8 @@ class jumper():
         self.power = randint(8, 12)
         self.vat = 0
         #offset's the turret's aim so the turrets don't all aim at roughly the same pixel
-        if randint (0, 5) <= 1:
-            self.offset = randint(-40, 40)
+        if randint (0, 5) <= 2:
+            self.offset = randint(-25, 25)
         else:
             self.offset = 0
         
@@ -563,20 +563,20 @@ class dropper():
         self.targ = randint(15, 670)
         self.y = -245
         self.color = [255, 255, 255]
-        self.size = 31
+        self.size = 35
         self.hit = 0
         
     def tick(self):
         self.y += 11
         if self.y >= self.targ:
             self.y = self.targ
-            pygame.draw.circle(screen, (190, 210, 0), (self.x, self.y), int(self.size))
+            pygame.draw.circle(screen, (190, 210, 50), (self.x, self.y), int(self.size))
             self.size -= .65
             if dist((self.x, self.y), locale) < self.size and self.hit == 0:
                 self.hit = 1
-                Helth[0] -= 2
-                for i in range(4, 8):
-                    bulletinboard.append(ouch((190, 210, 0)))
+                Helth[0] -= 5
+                for i in range(10, 20):
+                    bulletinboard.append(ouch((190, 210, 50)))
                 if Helth[0] == 0 and Helth[1] > 6 or Helth[0] < 0:
                     print("You were annihilated by an orbital bombardment platform, but after dodging " + str(swarm) + "other enemies beforehand ", end = "")
                     finale(swarm)
