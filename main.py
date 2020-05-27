@@ -77,7 +77,7 @@ def finale(swarm):
 
 
 #applies force to your character when you jump over a period of time so you don't just teleport
-class wraith:
+class wraith():
     def __init__(self, direction, lastwraith):
         if lastwraith == -1:
             self.direction = -1
@@ -93,7 +93,7 @@ class wraith:
         if not self.direction == -1:
             temp[0] += self.power*math.cos(self.direction*math.pi/180*-1)
             temp[1] += self.power*math.sin(self.direction*math.pi/180*-1)
-            self.power -= .35
+            self.power -= 0.35
             #actually moves you
         return temp
         #updates the player's location
@@ -102,7 +102,33 @@ class wraith:
         return self.power
     #returns how much the jump is moving you so the jump can make later jumps stronger and so jumps that are no longer doing anything can be cleared out
     
-class rocket:
+
+class ouch():
+    def __init__(self, color):
+        self.timer = randint(20, 30)
+        self.self = [locale[0], locale[1]]
+        self.autumn = 1
+        self.jdire = randint(0, 360)*math.pi/180
+        self.power = randint(7, 9)
+        self.color = color
+        self.color = color
+        
+    def tick(self):
+        pygame.draw.circle(screen, self.color, (int(self.self[0]), int(self.self[1])), 2)
+        pygame.draw.circle(screen, (255, 255, 255), (int(self.self[0]), int(self.self[1])), 1)
+        self.timer -= 1
+        if self.timer <= 0:
+            return True
+        self.autumn += 0.5
+        self.self[1] += self.autumn
+        self.self[1] -= math.sin(self.jdire)*self.power
+        self.self[0] += math.cos(self.jdire)*self.power
+        
+    def expire(self):
+        return True
+    
+    
+class rocket():
     def __init__(self, coordinates, initial):
         self.x = coordinates[0]
         self.y = coordinates[1]
@@ -165,8 +191,10 @@ class rocket:
         
     def expire(self):
         if dist(locale, (self.x, self.y)) <= 16 or self.flash:
-            #instantly deals damage ot the player if necessary
+            #instantly deals damage to the player if necessary
             Helth[0] -= 3
+            for i in range(randint(6, 12)):
+                bulletinboard.append(ouch((255, 210, 180)))
             if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
                 print("You were blown up by a rocket, but it took " + str(swarm) + " enemies to do it", end = "")
                 finale(swarm)
@@ -178,7 +206,7 @@ class rocket:
             #create lingering explosion bracket that can still hit you
         return True
     
-class blast:
+class blast():
     def __init__(self, site, fuse):
         self.x = site[0]
         self.y = site[1]
@@ -192,8 +220,11 @@ class blast:
         
     def tick(self):
         if dist((self.x, self.y), locale) <= int(self.size) and self.fuse == 1:
-            #hurts you
             Helth[0] -= 3
+            #hurts you
+            for i in range(randint(6, 12)):
+                bulletinboard.append(ouch((255, 210, 180)))
+            #makes sparks appear
             if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
                 print("You were blown up by a rocket, but it took " + str(swarm) + " enemies to do it", end = "")
                 finale(swarm)
@@ -206,7 +237,7 @@ class blast:
             self.size -= 1
         #makes the shrinking of the explosion accelerate over time
         elif self.age >= 26:
-            self.size -= .5
+            self.size -= 0.5
             #shrinks the explosion rapidly after the previous lines of code resolved and the explosion is shrinking at full speed
         self.age += 1
         #increases age so the acceleration works
@@ -222,7 +253,7 @@ class blast:
     #does nothing, but self.expire() will get called before it is erased so a placeholder is necessary
     
     
-class heavy:
+class heavy():
     def __init__(self):
         self.y = 674
         if randint(0, 1) == 1:
@@ -288,10 +319,10 @@ class heavy:
         #makes the tank not explode
         
         
-class limiter:
+class limiter():
     def __init__(self):
-        self.x = randint(175, 535)
-        self.y = randint(175, 535)
+        self.x = randint(205, 505)
+        self.y = randint(205, 505)
         #initializes force field at a random point
         self.power = randint(35, 65)
         #sets a randomized delay before forcefield activates
@@ -300,12 +331,12 @@ class limiter:
         
     def arrive(self):
         if self.frame == 0:
-            pygame.draw.line(screen, (255, 255, 255), (self.x, self.y+self.power), (self.x, self.y+190), 8)
-            pygame.draw.line(screen, (255, 255, 255), (self.x+self.power, self.y), (self.x+190, self.y), 8)
-            pygame.draw.line(screen, (255, 255, 255), (self.x, self.y-self.power), (self.x, self.y-190), 8)
-            pygame.draw.line(screen, (255, 255, 255), (self.x-self.power, self.y), (self.x-190, self.y), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x, self.y+self.power), (self.x, self.y+220), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x+self.power, self.y), (self.x+220, self.y), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x, self.y-self.power), (self.x, self.y-220), 8)
+            pygame.draw.line(screen, (255, 255, 255), (self.x-self.power, self.y), (self.x-220, self.y), 8)
             #draws lines approaching power core
-            self.power -= 6
+            self.power -= 7
             #makes lines get closer
         elif self.frame == 1:
             pygame.draw.line(screen, (255, 255, 255), (self.x, self.y+self.power), (self.x, self.y), 8)
@@ -313,7 +344,7 @@ class limiter:
             pygame.draw.line(screen, (255, 255, 255), (self.x, self.y-self.power), (self.x, self.y), 8)
             pygame.draw.line(screen, (255, 255, 255), (self.x-self.power, self.y), (self.x, self.y), 8)
             #draws lines being absorbed by power core
-            self.power -= 6
+            self.power -= 7
             #makes lines get absorbed by core
         
     def tick(self):
@@ -323,31 +354,31 @@ class limiter:
             if self.power <= 0:
                 self.frame += 1
                 if self.frame == 1:
-                    self.power = 175
+                    self.power = 220
                 if self.frame == 2:
                     self.power = 0
                 #proceeds to next steps of animation
         elif self.frame == 2:
-            self.power += 6
-            if self.power >= 190:
-                self.power = 105
+            self.power += 7
+            if self.power < 220:
                 pygame.draw.circle(screen, (255, 255, 255), (self.x, self.y), self.power, 2)
-                self.frame += 1
                 #draws powering up circle
             else:
-                pygame.draw.circle(screen, (255, 255, 255), (self.x, self.y), self.power, 2)
+                self.power = 105
+                pygame.draw.circle(screen, (255, 255, 255), (self.x, self.y), 220, 2)
+                self.frame += 1
                 #draws circle at max power during final frame before next step of animation
         elif self.frame == 3:
-            pygame.draw.circle(screen, (255, 255, 255), (self.x, self.y), 190, 4)
-            #draws the reduced boundaries of the play field
+            pygame.draw.circle(screen, (255, 255, 255), (self.x, self.y), 220, 4)
+            #draws the new boundaries of the play field
             self.power -= 1
             if self.power <= 0:
                 self.frame += 1
-                self.power = 190
+                self.power = 220
             #makes the core run out of power after a time
         elif self.frame == 4:
             pygame.draw.circle(screen, (225, 225, 225), (self.x, self.y), self.power, 2)
-            self.power -= 9
+            self.power -= 11
             #draws the collapsing forcefield
             if self.power <= 1:
                 self.power = randint(0, 15)
@@ -356,12 +387,12 @@ class limiter:
         else:
             self.power += 1
             #slowly reharges the limiter
-            if self.power >= 140-5*swarm:
+            if self.power >= 175-5*swarm:
                 self.frame = 0
-                self.power = 190
+                self.power = 220
                 #resets the limiter
-                self.x = randint(175, 535)
-                self.y = randint(175, 535)
+                self.x = randint(205, 505)
+                self.y = randint(205, 505)
                 #randomizes the limiter's position
                 
         if self.frame == 2 or self.frame == 3:
@@ -371,18 +402,25 @@ class limiter:
             #draws the power core
         if self.frame == 3:
             temp = dist((self.x, self.y), locale)
-            if temp > 197:
-                temp = 190/temp
+            if temp > 227:
+                if self.deel >= 1:
+                    self.deel -= 1
+                    #decreases the clock until the limiter can deal damage again
+                temp = 220/temp
                 temper = (int(self.x+temp*(locale[0]-self.x)), int(self.y+temp*(locale[1]-self.y)))
                 #finds the point on the circle's edge closest to the player
                 pygame.draw.line(screen, (255, 255, 255), (self.x, self.y), trueloc, 3)
-                pygame.draw.line(screen, (255, 190, 190), temper, trueloc, 3)
+                pygame.draw.line(screen, (255, 220, 220), temper, trueloc, 3)
                 pygame.draw.line(screen, (255, 65, 65), temper, trueloc, 1)
                 #lasers that point
                 if self.deel == 0:
                     self.deel = 10
                 #limits the limiter's DPS to 2.5
                     Helth[0] -= 1
+                    for i in range(randint(1, 2)):
+                        bulletinboard.append(ouch((255, 220, 220)))
+                    for i in range(randint(1, 2)):
+                        bulletinboard.append(ouch((255, 65, 65)))
                     if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
                         print("You strayed out of bounds and were killed by a laser, but it took " + str(swarm) + " enemies to do it", end = "")
                         finale(swarm)
@@ -390,15 +428,15 @@ class limiter:
             else:
                 pygame.draw.line(screen, (255, 255, 255), (self.x, self.y), trueloc, 2)
                 #draws a non-ouchy line to the player
-        if self.deel >= 1:
-            self.deel -= 1
-            #decreases the clock until the limiter can deal damage again
+                self.deel = 5
+                #gives the player some leniency if they rae only outside the circle for 1/7 of a second
         return False
         #makes the limiter not blow up immediately
         
 
 class jumper():
     def __init__(self):
+        #spawns the turet in upper-Earth atmosphere falling down
         self.x = randint(80, 630)
         self.y = -15
         self.dire = 0
@@ -410,16 +448,49 @@ class jumper():
         self.power = randint(8, 12)
         self.vat = 0
         
+    def cross(self):
+        #figures out which side of the laser the character is on so it will know when the character crosses the beam (same method as rockets)
+        temp = jump((self.x, self.y), locale)
+        temper = self.dire*180/math.pi
+        tempest = temper-180
+        if tempest < 0:
+            tempest += 360
+            tempbool = True
+        else:
+            tempbool = False
+        if tempbool:
+            if temp <= tempest and temp >= temper:
+                return "L"
+            else:
+                return "R"
+        else:
+            if temp >= tempest and temp <= temper:
+                return "R"
+            else:
+                return "L"
+        
     def tick(self):
-        self.vat += 1
-        if self.vat > 110:
+        #makes self.vat increase so the turret will transfer between animations when on the ground
+        if self.y == 660:
+            self.vat += 1
+        #makes the animation reset after laser-firing and jumps the turret
+        if self.vat >= 125:
             self.vat = 0
+            self.power = randint(12, 16)
+            #chooses a direction to jump in, towards the middle if it's around the edges of the screen or randomly otherwise
+            if self.x >= 600:
+                self.jdire = randint(235, 270)*math.pi/180
+            elif self.x <= 150:
+                self.jdire = randint(270, 305)*math.pi/180
+            else:
+                self.jdire = randint(235, 305)*math.pi/180
         self.power -= 0.35
+        #handles jumping
         if self.power < 0:
             self.power = 0
         self.x += math.cos(self.jdire)*self.power
         self.y += math.sin(self.jdire)*self.power
-        self.fall += .5
+        self.fall += 0.5
         self.y += self.fall
         if self.y > 660:
             self.y = 660
@@ -434,10 +505,21 @@ class jumper():
             pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+temp*(locale[0]-self.x)), int(self.y+temp*(locale[1]-self.y))), 5)
         elif self.vat <= 100:
             pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), 5)
-            pygame.draw.line(screen, (140, 140, 140), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), (int(self.x+math.cos(self.dire)*1005), int(self.y-math.sin(self.dire)*1005)), 7)
+            pygame.draw.line(screen, (140, 140, 140), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), (int(self.x+math.cos(self.dire)*1005), int(self.y-math.sin(self.dire)*1005)), 5)
+            self.comp = self.cross()
         else:
             pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), 5)
-            pygame.draw.line(screen, (210, 120, 160), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), (int(self.x+math.cos(self.dire)*1005), int(self.y-math.sin(self.dire)*1005)), 7)  
+            pygame.draw.line(screen, (210, 120, 160), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), (int(self.x+math.cos(self.dire)*1005), int(self.y-math.sin(self.dire)*1005)), 5)  
+            new = self.cross()
+            if not self.comp == new:
+                self.comp = new
+                Helth[0] -= 4
+                for i in range(randint(8, 16)):
+                    bulletinboard.append(ouch((210, 120, 160)))
+                if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
+                    print("You were sliced up by a laser, but survived an onslaught of " + str(swarm) + " enemies first", end = "")
+                    finale(swarm)
+                    #finally actually deals damage
         pygame.draw.circle(screen, (255, 190, 190), (int(self.x), int(self.y)), 9)
         pygame.draw.polygon(screen, (255, 145, 145), ((int(self.x), int(self.y)-6), (int(self.x-4.24), int(self.y+4.24)), (int(self.x+4.24), int(self.y+4.24))))
 
@@ -532,7 +614,7 @@ while True:
                 #decreases the number of each other jump that will be deleted now that there is one less item in the list
     
     if locale[1] < 685:
-        autumn += .5
+        autumn += 0.5
         locale[1] += autumn
     #makes gravity get you down (unlike an elevator- or *are* we gonna let the elevator bring us down? Who knows?)
     if locale[1] >= 685:
