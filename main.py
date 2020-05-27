@@ -553,7 +553,7 @@ class limiter():
 
 class jumper():
     def __init__(self):
-        #spawns the turet in upper-Earth atmosphere falling down
+        #spawns the turret in upper-Earth's atmosphere falling down
         self.x = randint(80, 630)
         self.y = -15
         self.dire = 0
@@ -564,6 +564,11 @@ class jumper():
         self.fall = 2
         self.power = randint(8, 12)
         self.vat = 0
+        #offset's the turret's aim so the turrets don't all aim at roughly the same pixel
+        if randint (0, 5) <= 1:
+            self.offset = randint(-40, 40)
+        else:
+            self.offset = 0
         
     def cross(self):
         #figures out which side of the laser the character is on so it will know when the character crosses the beam (same method as rockets)
@@ -615,11 +620,9 @@ class jumper():
         pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x)+12, int(self.y)+12), 5)
         pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x)-12, int(self.y)+12), 5)
         temp = 17/dist((self.x, self.y), locale)
-        if self.vat < 45:
-            pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+temp*(locale[0]-self.x)), int(self.y+temp*(locale[1]-self.y))), 5)
-        elif self.vat == 45:
-            self.dire = jump((self.x, self.y), locale)*math.pi/180
-            pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+temp*(locale[0]-self.x)), int(self.y+temp*(locale[1]-self.y))), 5)
+        if self.vat <= 45:
+            self.dire = (jump((self.x, self.y), locale)+self.offset)*math.pi/180
+            pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), 5)
         elif self.vat <= 100:
             pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), 5)
             pygame.draw.line(screen, (140, 140, 140), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), (int(self.x+math.cos(self.dire)*1005), int(self.y-math.sin(self.dire)*1005)), 5)
@@ -708,7 +711,7 @@ while True:
         swarm = temp[0]
         bulletinboard = temp[1]
         #spawns enemies preiodically, accelerating at a set rate
-    pygame.display.set_caption(str(swarm)+"    "+str(Helth[0]))
+    pygame.display.set_caption(str(swarm))
     
     
     #tells the player the current score and health
