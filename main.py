@@ -617,9 +617,10 @@ class jumper():
         if self.y > 660:
             self.y = 660
             self.fall = 0
+        #draws the turret's legs
         pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x)+12, int(self.y)+12), 5)
         pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x)-12, int(self.y)+12), 5)
-        temp = 17/dist((self.x, self.y), locale)
+        #draws the turret's arms and laser
         if self.vat <= 45:
             self.dire = (jump((self.x, self.y), locale)+self.offset)*math.pi/180
             pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), 5)
@@ -630,16 +631,18 @@ class jumper():
         else:
             pygame.draw.line(screen, (255, 210, 210), (int(self.x), int(self.y)), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), 5)
             pygame.draw.line(screen, (210, 120, 160), (int(self.x+math.cos(self.dire)*17), int(self.y-math.sin(self.dire)*17)), (int(self.x+math.cos(self.dire)*1005), int(self.y-math.sin(self.dire)*1005)), 5)  
+            #checks to see if the laser has been crossed
             new = self.cross()
             if not self.comp == new:
                 self.comp = new
+                #finally actually deals damage
                 Helth[0] -= 4
                 for i in range(randint(8, 16)):
                     bulletinboard.append(ouch((210, 120, 160)))
                 if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
                     print("You were sliced up by a laser, but survived an onslaught of " + str(swarm) + " enemies first", end = "")
                     finale(swarm)
-                    #finally actually deals damage
+        #draws turret body
         pygame.draw.circle(screen, (255, 190, 190), (int(self.x), int(self.y)), 9)
         pygame.draw.polygon(screen, (255, 145, 145), ((int(self.x), int(self.y)-6), (int(self.x-4.24), int(self.y+4.24)), (int(self.x+4.24), int(self.y+4.24))))
 
