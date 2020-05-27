@@ -95,10 +95,10 @@ def invade(score):
         tier = 6
     if score <= 75:
         for i in range(balance[tier][decider]):
-            dudes.append(randint(1, 2))
+            dudes.append(3)
     else:
         for i in range(randint(3, int(score/12))):
-            dudes.append(randint(1, 2))
+            dudes.append(randint(1, 3))
     return (dudes)
         
 
@@ -555,7 +555,41 @@ class jumper():
         #draws turret body
         pygame.draw.circle(screen, (255, 190, 190), (int(self.x), int(self.y)), 9)
         pygame.draw.polygon(screen, (255, 145, 145), ((int(self.x), int(self.y)-6), (int(self.x-4.24), int(self.y+4.24)), (int(self.x+4.24), int(self.y+4.24))))
-
+        
+        
+class dropper():
+    def __init__(self):
+        self.x = randint(5, 705)
+        self.targ = randint(15, 670)
+        self.y = -245
+        self.color = [255, 255, 255]
+        self.size = 31
+        self.hit = 0
+        
+    def tick(self):
+        self.y += 11
+        if self.y >= self.targ:
+            self.y = self.targ
+            pygame.draw.circle(screen, (190, 210, 0), (self.x, self.y), int(self.size))
+            self.size -= .65
+            if dist((self.x, self.y), locale) < self.size and self.hit == 0:
+                self.hit = 1
+                Helth[0] -= 2
+                for i in range(4, 8):
+                    bulletinboard.append(ouch((190, 210, 0)))
+                if Helth[0] == 0 and Helth[1] > 6 or Helth[0] < 0:
+                    print("You were annihilated by an orbital bombardment platform, but after dodging " + str(swarm) + "other enemies beforehand ", end = "")
+                    finale(swarm)
+            if self.size <= 0:
+                return True
+        else:
+            if self.targ-self.y <= 255:
+                self.color[2] = 255-(self.targ-self.y)
+            pygame.draw.rect(screen, self.color, (self.x-3, self.y-9, 6, 10))
+            pygame.draw.circle(screen, self.color, (self.x, self.y), 3)
+            
+    def expire(self):
+        bulletinboard.append(dropper())
         
 motion = [wraith(0, -1)]
 #starts the list of jumps off with a nonexistent jump so the list can be iterated over
@@ -618,15 +652,23 @@ while True:
     #autoheals you by 1 HP every 25 frames to an always-increasing max HP
         
     spawner += 1
-    if spawner >= 253-8*swarm:
+    if swarm <= 25:
+        cap = 253-2*swarm
+    elif swarm <= 78:
+        cap = 203-swarm
+    else:
+        cap = 125
+    if spawner >= 253-2*swarm:
         spawner = 0
         temp = invade(swarm)
         for i in temp:
             swarm += 1
             if i == 1:
                 bulletinboard.append(heavy())
-            else:
+            elif i == 2:
                 bulletinboard.append(jumper())
+            else:
+                bulletinboard.append(dropper())
         #spawns enemies preiodically, accelerating at a set rate
     pygame.display.set_caption(str(swarm))
     
@@ -703,7 +745,7 @@ while True:
         criticality = (252, 100, 0)
     elif criticality <= 0.5:
         criticality = (250, 200, 0)
-    elif criticality <= 0.99:
+    elif criticality <= 0.9:
         criticality = (200, 250, 0)
     else:
         criticality = (100, 255, 0)
