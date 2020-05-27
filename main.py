@@ -22,6 +22,7 @@ spawner = 0
 #timer until another enemy spawns
 swarm = 2
 #initializes variables and stuff
+balance = ((1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2), (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2), (1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3), (1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3), (1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4), (2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5))
 
 
 def jump(locale, target):
@@ -73,123 +74,32 @@ def finale(swarm):
     else:
         print(". Okay, with a score this high, you were definitely cheating.")
     sys.exit()
-#gives you a reference point for your score and ended the game
+#gives you a reference point for your score and ends the game
 
-def invade(score, dudes):
-    decider = randint(1, 100)
+def invade(score):
+    decider = randint(0, 14)
+    dudes = []
     if score <= 5:
-        if decider <= 65:
-            dudes.append(heavy())
-        else:
-            dudes.append(jumper())
+        tier = 0
     elif score <= 7:
-        if decider <= 55:
-            dudes.append(heavy())
-        else:
-            dudes.append(jumper())
+        tier = 1
     elif score <= 11:
-        if decider <=40:
-            dudes.append(heavy())
-        elif decider <= 80:
-            dudes.append(jumper())
-        elif decider <= 90:
-            dudes.append(heavy())
-            dudes.append(heavy())
-            score += 1
-        else:
-            dudes.append(heavy())
-            dudes.append(jumper())
-            score += 1
+        tier = 2
     elif score <= 17:
-        if decider <= 30:
-            dudes.append(heavy())
-        elif decider <= 60:
-            dudes.append(jumper())
-        elif decider <= 75:
-            dudes.append(heavy())
-            dudes.append(heavy())
-            score += 1
-        elif decider <= 90:
-            dudes.append(heavy())
-            dudes.append(jumper())
-            score += 1
-        else:
-            dudes.append(jumper())
-            dudes.append(jumper())
-            score += 1
+        tier = 3
     elif score <= 25:
-        if decider <= 15:
-            dudes.append(heavy())
-        elif decider <= 30:
-            dudes.append(jumper())
-        elif decider <= 50:
-            dudes.append(heavy())
-            dudes.append(heavy())
-        elif decider <= 70:
-            dudes.append(heavy())
-            dudes.append(jumper())
-        elif decider <= 90:
-            dudes.append(jumper())
-            dudes.append(jumper())
+        tier = 4
     elif score <= 45:
-        if decider <= 5:
-            dudes.append(heavy())
-        elif decider <= 10:
-            dudes.append(jumper())
-        elif decider <= 30:
-            dudes.append(heavy())
-            dudes.append(heavy())
-            score += 1
-        elif decider <= 50:
-            dudes.append(heavy())
-            dudes.append(jumper())
-            score += 1
-        elif decider <= 70:
-            dudes.append(jumper())
-            dudes.append(jumper())
-            score += 1
-        else:
-            for i in (0, 1, 2):
-                if randint(0, 1) == 1:
-                    dudes.append(heavy())
-                else:
-                    dudes.append(jumper())
-            score += 2
+        tier = 5
     elif score <= 75:
-        score += 1
-        if decider <= 10:
-            dudes.append(heavy())
-            dudes.append(heavy())
-        elif decider <= 20:
-            dudes.append(heavy())
-            dudes.append(jumper())
-        elif decider <= 30:
-            dudes.append(jumper())
-            dudes.append(jumper())
-        elif decider <= 75:
-            for i in (0, 1, 2):
-                score += 1
-                if randint(0, 1) == 1:
-                    dudes.append(heavy())
-                else:
-                    dudes.append(jumper())
-        else:
-            score += 2
-            for i in (0, 1, 2, 3):
-                if randint(0, 1) == 1:
-                    dudes.append(heavy())
-                else:
-                    dudes.append(jumper())
+        tier = 6
+    if score <= 75:
+        for i in range(balance[tier][decider]):
+            dudes.append(randint(1, 2))
     else:
-        score -= 1
-        for i in range(randint(3, int(score/15))):
-            score += 1
-            if randint(0, 1) == 1:
-                dudes.append(heavy())
-            else:
-                dudes.append(jumper())
-    score += 1
-    return (score, dudes)
+        for i in range(randint(3, int(score/12))):
+            dudes.append(randint(1, 2))
+    return (dudes)
         
 
             
@@ -307,7 +217,7 @@ class rocket():
         #doesn't call .expire and doesn't explode
         
     def expire(self):
-        if dist(locale, (self.x, self.y)) <= 16 or self.flash:
+        if dist(locale, (self.x, self.y)) <= 12 or self.flash:
             #instantly deals damage to the player if necessary
             Helth[0] -= 3
             for i in range(randint(6, 12)):
@@ -330,7 +240,7 @@ class blast():
         #puts the explosion where the missile was
         self.fuse = fuse
         #prevents the explosion from hitting you every frame and basicallyinstakilling you, also disables the explosion if the rocket already hit you
-        self.size = 16
+        self.size = 14
         #sets the starting size of the explosion so it can shrink over time (at a slightly higher radius than the missile will detect you at so you can feel cool by barely dodging missiles)
         self.age = 0
         #makes the explosion fade out
@@ -539,14 +449,14 @@ class limiter():
                     for i in range(randint(1, 2)):
                         bulletinboard.append(ouch((255, 65, 65)))
                     if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
-                        print("You strayed out of bounds and were killed by a laser, but it took " + str(swarm) + " enemies to do it", end = "")
+                        print("You strayed out of bounds and were killed by a laser, but first avoided " + str(swarm) + " enemies' bullets", end = "")
                         finale(swarm)
                         #finally actually deals damage
             else:
                 pygame.draw.line(screen, (255, 255, 255), (self.x, self.y), trueloc, 2)
                 #draws a non-ouchy line to the player
                 self.deel = 5
-                #gives the player some leniency if they rae only outside the circle for 1/7 of a second
+                #gives the player some leniency if they are only outside the circle for 1/7 of a second
         return False
         #makes the limiter not blow up immediately
         
@@ -710,9 +620,13 @@ while True:
     spawner += 1
     if spawner >= 253-8*swarm:
         spawner = 0
-        temp = invade(swarm, bulletinboard)
-        swarm = temp[0]
-        bulletinboard = temp[1]
+        temp = invade(swarm)
+        for i in temp:
+            swarm += 1
+            if i == 1:
+                bulletinboard.append(heavy())
+            else:
+                bulletinboard.append(jumper())
         #spawns enemies preiodically, accelerating at a set rate
     pygame.display.set_caption(str(swarm))
     
@@ -768,7 +682,7 @@ while True:
             #and back to more of the same. Deletes the bullets and enemies that need to be deleted.
             
     clock.tick(35)
-    #makes the game wait 1/35 of a second between frames so you can actually see what's going on, assuming you'l actually be able to see the player and you aren't offscreen
+    #makes the game wait 1/35 of a second between frames so you can actually see what's going on, assuming you're actually able to see the player and you aren't offscreen
     if locale[0] >= -5 and locale[0] <= 715:
         pygame.draw.circle(screen, (200, 200, 200), (trueloc[0], trueloc[1]), 7)
         #draws the player (much larger than the actual hitbox so you can just narrowly dodge a bullet or missile and feel good about yourself when in fact you weren't even close to getting hit)
@@ -793,7 +707,9 @@ while True:
         criticality = (200, 250, 0)
     else:
         criticality = (100, 255, 0)
+    #figures out how close you are to death so the healthbar will be colored corectly
     pygame.draw.line(screen, criticality, (12, 12), (12+6*Helth[0], 12), 6)
+    #draws the healthbar
 	
     pygame.display.update()
     #and finally makes everything that's happened so far visible.
