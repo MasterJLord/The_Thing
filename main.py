@@ -95,10 +95,10 @@ def invade(score):
         tier = 6
     if score <= 75:
         for i in range(balance[tier][decider]):
-            dudes.append(randint(1, 3))
+            dudes.append(4)
     else:
         for i in range(randint(3, int(score/12))):
-            dudes.append(randint(1, 3))
+            dudes.append(randint(1, 4))
     return (dudes)
         
 
@@ -112,7 +112,8 @@ class wraith():
             #puts in a wraith to the list that does absolutely nothing but stops the game from crashing when you iterate over the list when you try to iterate over the list
         else:
             self.direction = direction
-            self.power = math.log(lastwraith, 1.7)+13.2-.25*(Helth[0]-(4+0.5*swarm))
+            self.power = math.log(lastwraith, 1.7)+13.2
+            self.power *= 1.2-(Helth[0]/16+2*swarm)
             #makes succesive jumps scale up in power and be more powerful at low health to build suspense by keeping you as close to 0 at all times
             
     def tick(self, locale):
@@ -152,8 +153,73 @@ class ouch():
         self.self[0] += math.cos(self.jdire)*self.power
         
     def expire(self):
+        return True    
+    
+    
+class group():
+    def __init__(self):
+        self.x = [-60, 770][randint(0, 1)]
+        self.y = randint(110, 600)
+        
+    def tick(self):
+        for i in [0, 1, 2, 3, 4]:
+            bulletinboard.append(ship((self.x+randint(-40, 40), self.y+randint(-40, 40))))
         return True
     
+    def expire(self):
+        return True
+    
+    
+    
+class ship():
+    def __init__(self, spawnpoint):
+        self.x = spawnpoint[0]
+        self.y = spawnpoint[1]
+        self.turning = randint(16, 24)/10
+        if self.x < 0:
+            self.dire = 0
+        else:
+            self.dire = 0.75*math.pi
+        self.val = False
+        
+    def tick(self):
+        if self.turning <= 16:
+            self.turning += randint(0, 2)/2
+        elif self.turning >= 24:
+            self.turning -= randint(0, 2)/2
+        else:
+            self.turning += randint(-2, 2)/2
+        self.x += math.cos(self.dire)*.25*self.turning
+        self.y -= math.sin(self.dire)*.25*self.turning
+        if self.dire >= 2*math.pi:
+            self.dire -= 2*math.pi
+        elif self.dire < 0:
+            self.dire += 2*math.pi
+        if self.val == True and dist(locale, (self.x, self.y)) <= 45:
+            self.dire += self.turning*math.pi/1800
+        elif dist(locale, (self.x, self.y)) <= 25:
+            self.dire += self.turning*math.pi/1800
+            self.val = True
+        else:
+            self.val = False
+            iddir = jump((self.x, self.y), locale)/180*math.pi
+            tempdir = self.dire - math.pi
+            tempbool = False
+            if tempdir < 0:
+                tempdir += 2*math.pi
+                tempbool = True
+            if tempbool:
+                if iddir < self.dire or iddir > tempdir:
+                    self.dire -= self.turning*math.pi/1800
+                elif not self.dire == iddir:
+                    self.dire += self.turning*math.pi/1800
+            else:
+                if iddir > self.dire or iddir < tempdir:
+                    self.dire += self.turning*math.pi/1800
+                elif not self.dire == iddir:
+                    self.dire -= self.turning*math.pi/1800
+        pygame.draw.polygon(screen, (0, 185, 205), ((int(self.x+math.cos(self.dire)*3), int(self.y-math.sin(self.dire)*3)), (int(self.x+math.cos(self.dire-0.75*math.pi)), int(self.y-math.sin(self.dire-0.75*math.pi))), (int(self.x-math.cos(self.dire)), int(self.y+math.sin(self.dire))), (int(self.x+math.cos(self.dire+0.75*math.pi)), int(self.y-math.sin(self.dire+0.75*math.pi)))))
+
     
 class rocket():
     def __init__(self, coordinates, initial):
@@ -658,7 +724,7 @@ while True:
         cap = 203-swarm
     else:
         cap = 125
-    if spawner >= 253-2*swarm:
+    if spawner >= cap:
         spawner = 0
         temp = invade(swarm)
         for i in temp:
@@ -667,8 +733,10 @@ while True:
                 bulletinboard.append(heavy())
             elif i == 2:
                 bulletinboard.append(jumper())
-            else:
+            elif i == 3:
                 bulletinboard.append(dropper())
+            else:
+                bulletinboard.append(group())
         #spawns enemies preiodically, accelerating at a set rate
     pygame.display.set_caption(str(swarm))
     
