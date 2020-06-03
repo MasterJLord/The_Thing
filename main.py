@@ -23,6 +23,7 @@ spawner = 0
 swarm = 2
 #initializes variables and stuff
 balance = ((1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2), (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2), (1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3), (1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3), (1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4), (2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5))
+#stores the probabilities of a different amount of dudes spawning for each tier
 
 
 def jump(locale, target):
@@ -50,7 +51,7 @@ def jump(locale, target):
         if posx == 1 and posy == -1:
             dire = 360 - dire
     return(dire)
-#finds the direction from point A to point B so I can do stuff with sin and cos later in homing missiles and such
+#finds the direction from point A to point B so I can do stuff with sin and cos later in homing missiles and such; uses tan and the x- and y-coordinates of the right triangle of the two points and then converts that to degrees
 
 def dist(pointA, pointB):
     return(((pointA[0]-pointB[0])**2+(pointA[1]-pointB[1])**2)**(0.5))
@@ -93,13 +94,17 @@ def invade(score):
         tier = 5
     elif score <= 75:
         tier = 6
+    #finds the tier of the game based off of your current score
     if score <= 75:
         for i in range(balance[tier][decider]):
             dudes.append(4)
+    #compares the tier with the balance array to figure out how many enemies to spawn
     else:
         for i in range(randint(3, int(score/12))):
             dudes.append(randint(1, 4))
+        #spawns enemies with no maximum after the maximum tier is reached
     return (dudes)
+    #tells the game what to spawn
         
 
             
@@ -113,7 +118,7 @@ class wraith():
         else:
             self.direction = direction
             self.power = math.log(lastwraith, 1.7)+13.2
-            self.power *= 1.2-(Helth[0]/16+2*swarm)
+            self.power *= 1.1-(Helth[0]/(16+2*swarm))/2
             #makes succesive jumps scale up in power and be more powerful at low health to build suspense by keeping you as close to 0 at all times
             
     def tick(self, locale):
@@ -139,86 +144,147 @@ class ouch():
         self.jdire = randint(0, 360)*math.pi/180
         self.power = randint(7, 9)
         self.color = color
-        self.color = color
+        #sets up the spark at the player's position with the same color as the effect that dealt the damage
         
     def tick(self):
         pygame.draw.circle(screen, self.color, (int(self.self[0]), int(self.self[1])), 2)
         pygame.draw.circle(screen, (255, 255, 255), (int(self.self[0]), int(self.self[1])), 1)
+        #draws the spark with a white highlight
         self.timer -= 1
         if self.timer <= 0:
             return True
+        #deletes the spark after a time
         self.autumn += 0.5
         self.self[1] += self.autumn
         self.self[1] -= math.sin(self.jdire)*self.power
         self.self[0] += math.cos(self.jdire)*self.power
+        #handles the falling spark
         
     def expire(self):
         return True    
+    #placeholder; this function gets called when the spark is removed from the bulletinboard but does nothing
     
     
 class group():
     def __init__(self):
         self.x = [-60, 770][randint(0, 1)]
         self.y = randint(110, 600)
+        #makes sure the ships are spawned offscreen and around the same place
         
     def tick(self):
-        for i in [0, 1, 2, 3, 4]:
+        for i in [0, 1, 2, 3, 45]:
             bulletinboard.append(ship((self.x+randint(-40, 40), self.y+randint(-40, 40))))
+        #spawns 6 ships
         return True
+        #deletes the group so ships don't spawn at a rate of 6/turn
     
     def expire(self):
         return True
+    #placeholder; this function gets called when the group is removed from the bulletinboard but does nothing
     
+    
+class bullet():
+    def __init__(self, firer):
+        self.x = firer[0]
+        self.y = firer[1]
+        self.dire = firer[2]
+        #spawns the bullet at the ship
+        
+    def tick(self):
+        if dist((self.x+math.cos(self.dire)*6, self.y-math.sin(self.dire)*6), locale) < 7:
+            #makes sure the player is not in front of or behind the bullet
+            temp = jump((self.x+math.cos(self.dire+0.5*math.pi), self.y-math.sin(self.dire+0.5*math.pi)), locale)*math.pi/180
+            temper = jump((self.x+math.cos(self.dire-0.5*math.pi), self.y-math.sin(self.dire-0.5*math.pi)), locale)*math.pi/180
+            if temp <= self.dire and temper >= self.dire:
+                #makes sure the player's hitbox is between the bounds of the bullet's sides
+                Helth[0] -= 2
+                for i in range(randint(4, 8)):
+                    bulletinboard.append(ouch((100, 255, 255)))
+                if Helth[0] == 0 and Helth[1] >= 6 or Helth[0] < 0:
+                    print("You were riddled with bullets, but it took " + str(swarm) + " enemies to do it", end = "")
+                    finale(swarm)
+                    #finally actually deals damage
+        temp = (int(self.x), int(self.y))
+        self.x += math.cos(self.dire)*12
+        self.y -= math.sin(self.dire)*12
+        #moves the bullet
+        pygame.draw.line(screen, (100, 255, 255), (int(self.x), int(self.y)), temp, 3)
+        #draws the bullet between where it was before and where it is after moving
+        if self.x < -50 or self.x > 760 or self.y > 722:
+            return True
+        #deletes the bullet if it's gone offscreen left, bottom, or right
+        if abs(self.dire-0.5*math.pi) <= math.pi/8 and self.y < locale[1] and self.y < 0:
+            return True
+        #deletes the bullet if it's gone offscreen top and wasn't going to crash into a wall anytime soon (could not be lumped in with the others because there is no limit as to how high the player can go)
+        
+    def expire(self):
+        return True
+    #placeholder; this function gets called when the bullet is removed from the bulletinboard but does nothing
     
     
 class ship():
     def __init__(self, spawnpoint):
         self.x = spawnpoint[0]
         self.y = spawnpoint[1]
+        #spawns the ship around the location of the group() that spawned them
         self.turning = randint(16, 24)/10
+        #sets the ship up with a random speed
         if self.x < 0:
             self.dire = 0
         else:
-            self.dire = 0.75*math.pi
-        self.val = False
+            self.dire = math.pi
+        #sets the ship pointing inwards from the edges
+        self.val = 1
+        #stops the ships from fleeing from the player
+        self.rest = -30
+        #increases the delay before the ship is able to fire the first time
         
     def tick(self):
+        if self.rest < 50:
+            self.rest += 1
+        if self.rest >= 30 and self.val == 1 and abs(self.dire-(math.pi*jump((self.x, self.y), locale)/180)) <= math.pi/16:
+            self.rest -= 30
+            bulletinboard.append(bullet((self.x, self.y, self.dire)))
+        #fires a bullet if the ship is pointing at the player and not running from the player and manages the timer before the ship can shoot again
         if self.turning <= 16:
             self.turning += randint(0, 2)/2
         elif self.turning >= 24:
             self.turning -= randint(0, 2)/2
         else:
             self.turning += randint(-2, 2)/2
+        #speeds up or slows down the ship slightly
         self.x += math.cos(self.dire)*.25*self.turning
         self.y -= math.sin(self.dire)*.25*self.turning
+        #moves the ship
         if self.dire >= 2*math.pi:
             self.dire -= 2*math.pi
         elif self.dire < 0:
             self.dire += 2*math.pi
-        if self.val == True and dist(locale, (self.x, self.y)) <= 45:
-            self.dire += self.turning*math.pi/1800
-        elif dist(locale, (self.x, self.y)) <= 25:
-            self.dire += self.turning*math.pi/1800
-            self.val = True
+        #keeps the ship's direction within 0 and 360 degrees so it can be compared with other directions
+        if dist(locale, (self.x, self.y)) <= 65:
+            self.val = -1.5
+        elif dist(locale, (self.x, self.y)) > 115:
+            self.val = 1
+        #makes the ship start running from the player when it gets close and start running again when it's far away again (also makes the ship turn faster while running away)
+        iddir = jump((self.x, self.y), locale)/180*math.pi
+        tempdir = self.dire - math.pi
+        tempbool = False
+        if tempdir < 0:
+            tempdir += 2*math.pi
+            tempbool = True
+        if tempbool:
+            if iddir < self.dire or iddir > tempdir:
+                self.dire -= self.turning*math.pi/1800*self.val
+            elif not self.dire == iddir:
+                self.dire += self.turning*math.pi/1800*self.val
         else:
-            self.val = False
-            iddir = jump((self.x, self.y), locale)/180*math.pi
-            tempdir = self.dire - math.pi
-            tempbool = False
-            if tempdir < 0:
-                tempdir += 2*math.pi
-                tempbool = True
-            if tempbool:
-                if iddir < self.dire or iddir > tempdir:
-                    self.dire -= self.turning*math.pi/1800
-                elif not self.dire == iddir:
-                    self.dire += self.turning*math.pi/1800
-            else:
-                if iddir > self.dire or iddir < tempdir:
-                    self.dire += self.turning*math.pi/1800
-                elif not self.dire == iddir:
-                    self.dire -= self.turning*math.pi/1800
-        pygame.draw.polygon(screen, (0, 185, 205), ((int(self.x+math.cos(self.dire)*3), int(self.y-math.sin(self.dire)*3)), (int(self.x+math.cos(self.dire-0.75*math.pi)), int(self.y-math.sin(self.dire-0.75*math.pi))), (int(self.x-math.cos(self.dire)), int(self.y+math.sin(self.dire))), (int(self.x+math.cos(self.dire+0.75*math.pi)), int(self.y-math.sin(self.dire+0.75*math.pi)))))
+            if iddir > self.dire or iddir < tempdir:
+                self.dire += self.turning*math.pi/1800*self.val
+            elif not self.dire == iddir:
+                self.dire -= self.turning*math.pi/1800*self.val
+        #handles the ship homing in on player/running away from player the same way the heavy's rockets do, but with the addition of the change in direction being multiplied by self.val which handles the ship running away from the player
+        pygame.draw.polygon(screen, (0, 125, 175), ((int(self.x+math.cos(self.dire)*4), int(self.y-math.sin(self.dire)*4)), (int(self.x+math.cos(self.dire-0.75*math.pi)*2), int(self.y-math.sin(self.dire-0.75*math.pi)*2)), (int(self.x-math.cos(self.dire)), int(self.y+math.sin(self.dire))), (int(self.x+math.cos(self.dire+0.75*math.pi)*2), int(self.y-math.sin(self.dire+0.75*math.pi)*2))))
+        #draws the ship
 
     
 class rocket():
