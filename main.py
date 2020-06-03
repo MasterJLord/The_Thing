@@ -97,7 +97,7 @@ def invade(score):
     #finds the tier of the game based off of your current score
     if score <= 75:
         for i in range(balance[tier][decider]):
-            dudes.append(4)
+            dudes.append(randint(1, 4))
     #compares the tier with the balance array to figure out how many enemies to spawn
     else:
         for i in range(randint(3, int(score/12))):
