@@ -124,8 +124,8 @@ class wraith():
     def tick(self, locale):
         temp = locale
         if not self.direction == -1:
-            temp[0] += self.power*math.cos(self.direction*math.pi/180*-1)
-            temp[1] += self.power*math.sin(self.direction*math.pi/180*-1)
+            temp[0] += self.power*math.cos(self.direction*math.pi/180*-1)*(2-key[K_LSHIFT])/2
+            temp[1] += self.power*math.sin(self.direction*math.pi/180*-1)*(2-key[K_LSHIFT])/2
             self.power -= 0.35
             #actually moves you
         return temp
@@ -806,7 +806,7 @@ while True:
         #spawns enemies preiodically, accelerating at a set rate
     pygame.display.set_caption(str(swarm))
     
-    
+    key = pygame.key.get_pressed()    
     #tells the player the current score and health
     doom = []
     #empties the list of jumps that will be erased
@@ -819,14 +819,14 @@ while True:
     for i in doom:
         motion.pop(i)
         #now removes the useless jumps
-        if len(doom) >= 1:
-            for i in doom:
-                i -= 1
-                #decreases the number of each other jump that will be deleted now that there is one less item in the list
-    
+        for i in doom:
+            i -= 1
+            #decreases the number of each other jump that will be deleted now that there is one less item in the list
+        
+
     if locale[1] < 685:
         autumn += 0.5
-        locale[1] += autumn
+        locale[1] += autumn*(7-6*key[K_LSHIFT])/7
     #makes gravity get you down (unlike an elevator- or *are* we gonna let the elevator bring us down? Who knows?)
     if locale[1] >= 685:
         autumn = 0
